@@ -1,0 +1,25 @@
+import java.util.List;
+
+public class FlagQuestion {
+    private final String question;
+    private final List<String> flagPaths;
+    private final int correctAnswer;
+
+    public FlagQuestion(String question, List<String> flagPaths, int correctAnswer) {
+        this.question = question;
+        this.flagPaths = flagPaths;
+        this.correctAnswer = correctAnswer;
+    }
+
+    public String getQuestion() {
+        return question;
+    }
+
+    public List<String> getFlagPaths() {
+        return flagPaths;
+    }
+
+    public int getCorrectAnswer() {
+        return correctAnswer;
+    }
+}
