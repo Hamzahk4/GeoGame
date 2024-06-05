@@ -1,0 +1,206 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+
+public class FlagQuizGame extends JFrame implements ActionListener {
+
+    private JLabel promptLabel;
+    private JButton[] flagButtons;
+    private JLabel scoreLabel;
+    private int score;
+    private int currentRound;
+    private final int totalRounds = 10;
+    private List<FlagQuestion> questions;
+    private List<String> countryCodes; // List of country codes
+
+    public FlagQuizGame() {
+        setTitle("Flag Quiz Game");
+        setSize(1920, 1080); // Maximize window
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        // Making sure the application is in full-screen mode
+        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        if (gd.isFullScreenSupported()) {
+            gd.setFullScreenWindow(this);
+        } else {
+            System.err.println("Full-screen mode not supported");
+            setSize(800, 600); // Fallback size
+        }
+
+        promptLabel = new JLabel("Which flag is of Guatemala?", SwingConstants.CENTER);
+        promptLabel.setFont(new Font("Arial", Font.BOLD, 80)); // Make the font larger
+        promptLabel.setBackground(Color.DARK_GRAY);
+        promptLabel.setOpaque(true);
+        promptLabel.setForeground(Color.WHITE);
+        add(promptLabel, BorderLayout.NORTH);
+
+        JPanel flagPanel = new JPanel();
+        flagPanel.setLayout(new GridLayout(2, 2));
+        flagPanel.setBackground(Color.DARK_GRAY); // Set background color for flag panel
+
+        flagButtons = new JButton[4];
+        for (int i = 0; i < 4; i++) {
+            flagButtons[i] = new JButton();
+            flagButtons[i].setBackground(Color.DARK_GRAY);
+            flagButtons[i].setOpaque(true);
+            flagButtons[i].addActionListener(this);
+            flagPanel.add(flagButtons[i]);
+        }
+
+        add(flagPanel, BorderLayout.CENTER);
+
+        scoreLabel = new JLabel("Score: 0", SwingConstants.CENTER);
+        scoreLabel.setFont(new Font("Arial", Font.BOLD, 60)); // Make the font larger
+        scoreLabel.setBackground(Color.DARK_GRAY);
+        scoreLabel.setOpaque(true);
+        scoreLabel.setForeground(Color.WHITE);
+        add(scoreLabel, BorderLayout.SOUTH);
+
+        score = 0;
+        currentRound = 0;
+
+        countryCodes = loadCountryCodes();
+        questions = loadQuestions();
+
+        displayNextQuestion();
+    }
+
+    private List<String> loadCountryCodes() {
+        // Add all country codes here
+        List<String> codes = new ArrayList<>();
+        codes.add("gt"); // Guatemala
+        codes.add("bz"); // Belize
+        codes.add("mx"); // Mexico
+        codes.add("ca"); // Canada
+        codes.add("us"); // USA
+        codes.add("br"); // Brazil
+        codes.add("ar"); // Argentina
+        codes.add("jp"); // Japan
+        codes.add("cn"); // China
+        codes.add("de"); // Germany
+        codes.add("fr"); // France
+        // Add more country codes as needed
+        return codes;
+    }
+
+    private List<FlagQuestion> loadQuestions() {
+        List<FlagQuestion> questions = new ArrayList<>();
+        Random rand = new Random();
+
+        for (String code : countryCodes) {
+            List<String> options = new ArrayList<>(countryCodes);
+            options.remove(code); // Remove correct answer from options
+            List<String> selectedOptions = new ArrayList<>();
+            selectedOptions.add(code); // Add correct answer
+
+            // Randomly select 3 other flags
+            for (int i = 0; i < 3; i++) {
+                int index = rand.nextInt(options.size());
+                selectedOptions.add(options.get(index));
+                options.remove(index);
+            }
+
+            // Shuffle the options to randomize the position of the correct answer
+            Collections.shuffle(selectedOptions);
+
+            // Determine the position of the correct answer
+            int correctAnswer = selectedOptions.indexOf(code);
+
+            // Add question to the list
+            questions.add(new FlagQuestion("Which flag is of " + getCountryName(code) + "?", selectedOptions, correctAnswer));
+        }
+
+        return questions;
+    }
+
+    private String getCountryName(String code) {
+        // Return the country name based on the country code
+        // This is a simplified version. You might want to use a more comprehensive approach
+        switch (code) {
+            case "gt":
+                return "Guatemala";
+            case "bz":
+                return "Belize";
+            case "mx":
+                return "Mexico";
+            case "ca":
+                return "Canada";
+            case "us":
+                return "USA";
+            case "br":
+                return "Brazil";
+            case "ar":
+                return "Argentina";
+            case "jp":
+                return "Japan";
+            case "cn":
+                return "China";
+            case "de":
+                return "Germany";
+            case "fr":
+                return "France";
+            default:
+                return "Unknown";
+        }
+    }
+
+    private void displayNextQuestion() {
+        if (currentRound < totalRounds) {
+            if (currentRound < questions.size()) {
+                FlagQuestion currentQuestion = questions.get(currentRound);
+                promptLabel.setText(currentQuestion.getQuestion());
+
+                for (int i = 0; i < 4; i++) {
+                    String imagePath = ".idea/" + currentQuestion.getFlagPaths().get(i) + ".png";
+                    ImageIcon icon = new ImageIcon(imagePath);
+                    if (icon.getImageLoadStatus() == MediaTracker.ERRORED) {
+                        flagButtons[i].setText("Image not found");
+                    } else {
+                        flagButtons[i].setIcon(icon);
+                    }
+                    flagButtons[i].setActionCommand(String.valueOf(i));
+                }
+
+                currentRound++;
+            } else {
+                System.err.println("Not enough questions in the list.");
+            }
+        } else {
+            promptLabel.setText("Game Over! Your score: " + score);
+            for (JButton flagButton : flagButtons) {
+                flagButton.setEnabled(false);
+            }
+        }
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        int selectedAnswer = Integer.parseInt(e.getActionCommand());
+        FlagQuestion currentQuestion = questions.get(currentRound - 1);
+
+        if (selectedAnswer == currentQuestion.getCorrectAnswer()) {
+            score++;
+        }
+
+        scoreLabel.setText("Score: " + score);
+
+        // Show correct answer feedback
+        JOptionPane.showMessageDialog(this, "Correct answer is: " +
+                getCountryName(currentQuestion.getFlagPaths().get(currentQuestion.getCorrectAnswer())));
+
+        displayNextQuestion();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            FlagQuizGame game = new FlagQuizGame();
+            game.setVisible(true);
+        });
+    }
+}
