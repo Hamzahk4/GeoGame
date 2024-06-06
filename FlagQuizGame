@@ -14,32 +14,25 @@ public class FlagQuizGame extends JFrame implements ActionListener {
     private JLabel scoreLabel;
     private int score;
     private int currentRound;
-    private final int totalRounds = 10;
+    private final int totalRounds = 230; // safe bet yn
     private List<FlagQuestion> questions;
-    private List<String> countryCodes; // List of country codes
+    private List<String> countryCodes;
+    private JLabel timerLabel;
+    private JButton startButton;
+    private Timer gameTimer;
+    private int timeRemaining;
 
     public FlagQuizGame() {
         setTitle("Flag Quiz Game");
-        setSize(1920, 1080); // Maximize window
+        setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Making sure the application is in full-screen mode
-        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        if (gd.isFullScreenSupported()) {
-            gd.setFullScreenWindow(this);
-        } else {
-            System.err.println("Full-screen mode not supported");
-            setSize(800, 600); // Fallback size
-        }
+        // Main panel for buttons and prompt thingy
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout());
 
-        promptLabel = new JLabel("Which flag is of Guatemala?", SwingConstants.CENTER);
-        promptLabel.setFont(new Font("Arial", Font.BOLD, 80)); // Make the font larger
-        promptLabel.setBackground(Color.DARK_GRAY);
-        promptLabel.setOpaque(true);
-        promptLabel.setForeground(Color.WHITE);
-        add(promptLabel, BorderLayout.NORTH);
-
+        // Panel for flag buttonssssssssss
         JPanel flagPanel = new JPanel();
         flagPanel.setLayout(new GridLayout(2, 2));
         flagPanel.setBackground(Color.DARK_GRAY); // Set background color for flag panel
@@ -53,14 +46,44 @@ public class FlagQuizGame extends JFrame implements ActionListener {
             flagPanel.add(flagButtons[i]);
         }
 
-        add(flagPanel, BorderLayout.CENTER);
+        // Panel for score and timer
+        JPanel scorePanel = new JPanel();
+        scorePanel.setLayout(new GridLayout(1, 2));
 
         scoreLabel = new JLabel("Score: 0", SwingConstants.CENTER);
-        scoreLabel.setFont(new Font("Arial", Font.BOLD, 60)); // Make the font larger
-        scoreLabel.setBackground(Color.DARK_GRAY);
-        scoreLabel.setOpaque(true);
+        scoreLabel.setFont(new Font("Arial", Font.BOLD, 30));
         scoreLabel.setForeground(Color.WHITE);
-        add(scoreLabel, BorderLayout.SOUTH);
+        scoreLabel.setBackground(Color.DARK_GRAY);
+        scorePanel.add(scoreLabel);
+
+        timerLabel = new JLabel("Time: 01:00", SwingConstants.CENTER);
+        timerLabel.setFont(new Font("Arial", Font.BOLD, 30));
+        timerLabel.setBackground(Color.DARK_GRAY);
+        timerLabel.setForeground(Color.WHITE);
+        scorePanel.add(timerLabel);
+
+        //panel for the top part (start and prompt)
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BorderLayout());
+
+        startButton = new JButton("Start");
+        startButton.setFont(new Font("Arial", Font.BOLD, 40));
+        startButton.setBackground(Color.GRAY);
+        startButton.addActionListener(e -> startGame());
+        topPanel.add(startButton, BorderLayout.WEST);
+
+        promptLabel = new JLabel("", SwingConstants.CENTER);
+        promptLabel.setFont(new Font("Arial", Font.BOLD, 40));
+        promptLabel.setBackground(Color.DARK_GRAY);
+        promptLabel.setOpaque(true);
+        promptLabel.setForeground(Color.WHITE);
+        topPanel.add(promptLabel, BorderLayout.CENTER);
+
+        mainPanel.add(flagPanel, BorderLayout.CENTER);
+        mainPanel.add(scorePanel, BorderLayout.SOUTH);
+
+        add(topPanel, BorderLayout.NORTH);
+        add(mainPanel, BorderLayout.CENTER);
 
         score = 0;
         currentRound = 0;
@@ -68,87 +91,696 @@ public class FlagQuizGame extends JFrame implements ActionListener {
         countryCodes = loadCountryCodes();
         questions = loadQuestions();
 
-        displayNextQuestion();
+        askForName();
+        // SETTING THE BUTTON AND LABEL LOOK AND POSITIONS
+    }
+    private void askForName() {
+        String name = JOptionPane.showInputDialog(this, "Please enter your name:");
+
+        // RECURSION (if the user never inputs a name, we will recursivley call it again to ask)
+        if (name == null || name.isEmpty()) {
+            askForName(); // CALL
+        } else {
+            JOptionPane.showMessageDialog(this, "I've been expecting you " + name + ". This is a flag guessing game. You will have 1 minute to answer questions, and at the end your score will be tabulated. Press 'start' to begin.");
+        }
     }
 
+
+   // making the countryCodes (GPT generated)
+
     private List<String> loadCountryCodes() {
-        // Add all country codes here
         List<String> codes = new ArrayList<>();
-        codes.add("gt"); // Guatemala
-        codes.add("bz"); // Belize
-        codes.add("mx"); // Mexico
-        codes.add("ca"); // Canada
-        codes.add("us"); // USA
-        codes.add("br"); // Brazil
+        codes.add("af"); // Afghanistan
+        codes.add("al"); // Albania
+        codes.add("dz"); // Algeria
+        codes.add("ad"); // Andorra
+        codes.add("ao"); // Angola
+        codes.add("ag"); // Antigua and Barbuda
         codes.add("ar"); // Argentina
-        codes.add("jp"); // Japan
+        codes.add("am"); // Armenia
+        codes.add("au"); // Australia
+        codes.add("at"); // Austria
+        codes.add("az"); // Azerbaijan
+        codes.add("bs"); // Bahamas
+        codes.add("bh"); // Bahrain
+        codes.add("bd"); // Bangladesh
+        codes.add("bb"); // Barbados
+        codes.add("by"); // Belarus
+        codes.add("be"); // Belgium
+        codes.add("bz"); // Belize
+        codes.add("bj"); // Benin
+        codes.add("bt"); // Bhutan
+        codes.add("bo"); // Bolivia
+        codes.add("ba"); // Bosnia and Herzegovina
+        codes.add("bw"); // Botswana
+        codes.add("br"); // Brazil
+        codes.add("bn"); // Brunei
+        codes.add("bg"); // Bulgaria
+        codes.add("bf"); // Burkina Faso
+        codes.add("bi"); // Burundi
+        codes.add("kh"); // Cambodia
+        codes.add("cm"); // Cameroon
+        codes.add("ca"); // Canada
+        codes.add("cv"); // Cape Verde
+        codes.add("cf"); // Central African Republic
+        codes.add("td"); // Chad
+        codes.add("cl"); // Chile
         codes.add("cn"); // China
-        codes.add("de"); // Germany
+        codes.add("co"); // Colombia
+        codes.add("km"); // Comoros
+        codes.add("cd"); // Democratic Republic of the Congo
+        codes.add("cg"); // Republic of the Congo
+        codes.add("cr"); // Costa Rica
+        codes.add("ci"); // Ivory Coast
+        codes.add("hr"); // Croatia
+        codes.add("cu"); // Cuba
+        codes.add("cy"); // Cyprus
+        codes.add("cz"); // Czech Republic
+        codes.add("dk"); // Denmark
+        codes.add("dj"); // Djibouti
+        codes.add("dm"); // Dominica
+        codes.add("do"); // Dominican Republic
+        codes.add("tl"); // East Timor
+        codes.add("ec"); // Ecuador
+        codes.add("eg"); // Egypt
+        codes.add("sv"); // El Salvador
+        codes.add("gq"); // Equatorial Guinea
+        codes.add("er"); // Eritrea
+        codes.add("ee"); // Estonia
+        codes.add("et"); // Ethiopia
+        codes.add("fj"); // Fiji
+        codes.add("fi"); // Finland
         codes.add("fr"); // France
-        // Add more country codes as needed
+        codes.add("ga"); // Gabon
+        codes.add("gm"); // Gambia
+        codes.add("ge"); // Georgia
+        codes.add("de"); // Germany
+        codes.add("gh"); // Ghana
+        codes.add("gr"); // Greece
+        codes.add("gd"); // Grenada
+        codes.add("gt"); // Guatemala
+        codes.add("gn"); // Guinea
+        codes.add("gw"); // Guinea-Bissau
+        codes.add("gy"); // Guyana
+        codes.add("ht"); // Haiti
+        codes.add("hn"); // Honduras
+        codes.add("hu"); // Hungary
+        codes.add("is"); // Iceland
+        codes.add("in"); // India
+        codes.add("id"); // Indonesia
+        codes.add("ir"); // Iran
+        codes.add("iq"); // Iraq
+        codes.add("ie"); // Ireland
+        codes.add("il"); // Israel
+        codes.add("it"); // Italy
+        codes.add("jm"); // Jamaica
+        codes.add("jp"); // Japan
+        codes.add("jo"); // Jordan
+        codes.add("kz"); // Kazakhstan
+        codes.add("ke"); // Kenya
+        codes.add("ki"); // Kiribati
+        codes.add("kr"); // South Korea
+        codes.add("xk"); // Kosovo
+        codes.add("kw"); // Kuwait
+        codes.add("kg"); // Kyrgyzstan
+        codes.add("la"); // Laos
+        codes.add("lv"); // Latvia
+        codes.add("lb"); // Lebanon
+        codes.add("ls"); // Lesotho
+        codes.add("lr"); // Liberia
+        codes.add("ly"); // Libya
+        codes.add("li"); // Liechtenstein
+        codes.add("lt"); // Lithuania
+        codes.add("lu"); // Luxembourg
+        codes.add("mk"); // Macedonia
+        codes.add("mg"); // Madagascar
+        codes.add("mw"); // Malawi
+        codes.add("my"); // Malaysia
+        codes.add("mv"); // Maldives
+        codes.add("ml"); // Mali
+        codes.add("mt"); // Malta
+        codes.add("mh"); // Marshall Islands
+        codes.add("mr"); // Mauritania
+        codes.add("mu"); // Mauritius
+        codes.add("mx"); // Mexico
+        codes.add("fm"); // Micronesia
+        codes.add("md"); // Moldova
+        codes.add("mc"); // Monaco
+        codes.add("mn"); // Mongolia
+        codes.add("me"); // Montenegro
+        codes.add("ma"); // Morocco
+        codes.add("mz"); // Mozambique
+        codes.add("mm"); // Myanmar
+        codes.add("na"); // Namibia
+        codes.add("nr"); // Nauru
+        codes.add("np"); // Nepal
+        codes.add("nl"); // Netherlands
+        codes.add("nz"); // New Zealand
+        codes.add("ni"); // Nicaragua
+        codes.add("ne"); // Niger
+        codes.add("ng"); // Nigeria
+        codes.add("no"); // Norway
+        codes.add("om"); // Oman
+        codes.add("pk"); // Pakistan
+        codes.add("pw"); // Palau
+        codes.add("pa"); // Panama
+        codes.add("pg"); // Papua New Guinea
+        codes.add("py"); // Paraguay
+        codes.add("pe"); // Peru
+        codes.add("ph"); // Philippines
+        codes.add("pl"); // Poland
+        codes.add("pt"); // Portugal
+        codes.add("qa"); // Qatar
+        codes.add("ro"); // Romania
+        codes.add("ru"); // Russia
+        codes.add("rw"); // Rwanda
+        codes.add("kn"); // Saint Kitts and Nevis
+        codes.add("lc"); // Saint Lucia
+        codes.add("vc"); // Saint Vincent and the Grenadines
+        codes.add("ws"); // Samoa
+        codes.add("sm"); // San Marino
+        codes.add("st"); // Sao Tome and Principe
+        codes.add("sa"); // Saudi Arabia
+        codes.add("sn"); // Senegal
+        codes.add("rs"); // Serbia
+        codes.add("sc"); // Seychelles
+        codes.add("sl"); // Sierra Leone
+        codes.add("sg"); // Singapore
+        codes.add("sk"); // Slovakia
+        codes.add("si"); // Slovenia
+        codes.add("sb"); // Solomon Islands
+        codes.add("so"); // Somalia
+        codes.add("za"); // South Africa
+        codes.add("ss"); // South Sudan
+        codes.add("es"); // Spain
+        codes.add("lk"); // Sri Lanka
+        codes.add("sd"); // Sudan
+        codes.add("sr"); // Suriname
+        codes.add("sz"); // Swaziland
+        codes.add("se"); // Sweden
+        codes.add("ch"); // Switzerland
+        codes.add("sy"); // Syria
+        codes.add("tw"); // Taiwan
+        codes.add("tj"); // Tajikistan
+        codes.add("tz"); // Tanzania
+        codes.add("th"); // Thailand
+        codes.add("tg"); // Togo
+        codes.add("to"); // Tonga
+        codes.add("tt"); // Trinidad and Tobago
+        codes.add("tn"); // Tunisia
+        codes.add("tr"); // Turkey
+        codes.add("tm"); // Turkmenistan
+        codes.add("tv"); // Tuvalu
+        codes.add("ug"); // Uganda
+        codes.add("ua"); // Ukraine
+        codes.add("ae"); // United Arab Emirates
+        codes.add("gb"); // United Kingdom
+        codes.add("us"); // United States
+        codes.add("uy"); // Uruguay
+        codes.add("uz"); // Uzbekistan
+        codes.add("vu"); // Vanuatu
+        codes.add("va"); // Vatican City
+        codes.add("ve"); // Venezuela
+        codes.add("vn"); // Vietnam
+        codes.add("ye"); // Yemen
+        codes.add("zm"); // Zambia
+        codes.add("zw"); // Zimbabwe
         return codes;
     }
 
-    private List<FlagQuestion> loadQuestions() {
-        List<FlagQuestion> questions = new ArrayList<>();
+
+    private ArrayList<FlagQuestion> loadQuestions() {
+        ArrayList<FlagQuestion> questions = new ArrayList<>();
         Random rand = new Random();
+        List<String> shuffledCountryCodes = new ArrayList<>(countryCodes); //shuffling it so that its random
+        Collections.shuffle(shuffledCountryCodes); // Shuffle the country codes
 
-        for (String code : countryCodes) {
+        for (String code : shuffledCountryCodes) {
             List<String> options = new ArrayList<>(countryCodes);
-            options.remove(code); // Remove correct answer from options
+            options.remove(code); // Remove correct answer from options so we know
             List<String> selectedOptions = new ArrayList<>();
-            selectedOptions.add(code); // Add correct answer
+            selectedOptions.add(code); // Add correct answer so we can tell whats right
 
-            // Randomly select 3 other flags
+            // 3 other flags at randommm
             for (int i = 0; i < 3; i++) {
                 int index = rand.nextInt(options.size());
                 selectedOptions.add(options.get(index));
                 options.remove(index);
             }
 
-            // Shuffle the options to randomize the position of the correct answer
+            // this makes it so that the right answer is at a random position
             Collections.shuffle(selectedOptions);
 
-            // Determine the position of the correct answer
+            // finds where it is
             int correctAnswer = selectedOptions.indexOf(code);
 
-            // Add question to the list
+            // updated prompt thingamabob
             questions.add(new FlagQuestion("Which flag is of " + getCountryName(code) + "?", selectedOptions, correctAnswer));
         }
 
         return questions;
     }
 
+    // Timer and startGame GPT generated to handle the timer and stopping the game
+    private void updateTimerLabel() {
+        int minutes = timeRemaining / 60;
+        int seconds = timeRemaining % 60;
+        String timeString = String.format("%02d:%02d", minutes, seconds);
+        timerLabel.setText("Time: " + timeString);
+    }
+
+    private void startGame() {
+        startButton.setEnabled(false); // Disable the start button
+        timeRemaining = 60; // Set initial time to 60 seconds
+        updateTimerLabel(); // Update timer label to display initial time
+
+        // Start the timer
+        gameTimer = new Timer(1000, e -> {
+            timeRemaining--;
+            updateTimerLabel();
+            if (timeRemaining <= 0) {
+                endGame();
+            }
+        });
+        gameTimer.start();
+
+        // Display the first question
+        displayNextQuestion();
+    }
+
+    private void endGame() {
+        gameTimer.stop();
+        startButton.setEnabled(true);
+
+        int totalQuestionsAnswered = currentRound; // how many weve done
+
+        int scorePercentage = (score * 100) / totalQuestionsAnswered;
+
+        JOptionPane.showMessageDialog(this, "Time's up! Your score: " + score + " / " + totalQuestionsAnswered +
+                " (" + scorePercentage + "%)", "Game Over", JOptionPane.INFORMATION_MESSAGE);
+
+        score = 0;
+        currentRound = 0;
+    }
+
+// GPT GENERATED
     private String getCountryName(String code) {
-        // Return the country name based on the country code
-        // This is a simplified version. You might want to use a more comprehensive approach
         switch (code) {
-            case "gt":
-                return "Guatemala";
-            case "bz":
-                return "Belize";
-            case "mx":
-                return "Mexico";
-            case "ca":
-                return "Canada";
-            case "us":
-                return "USA";
-            case "br":
-                return "Brazil";
+            case "af":
+                return "Afghanistan";
+            case "al":
+                return "Albania";
+            case "dz":
+                return "Algeria";
+            case "ad":
+                return "Andorra";
+            case "ao":
+                return "Angola";
+            case "ag":
+                return "Antigua and Barbuda";
             case "ar":
                 return "Argentina";
-            case "jp":
-                return "Japan";
+            case "am":
+                return "Armenia";
+            case "au":
+                return "Australia";
+            case "at":
+                return "Austria";
+            case "az":
+                return "Azerbaijan";
+            case "bs":
+                return "Bahamas";
+            case "bh":
+                return "Bahrain";
+            case "bd":
+                return "Bangladesh";
+            case "bb":
+                return "Barbados";
+            case "by":
+                return "Belarus";
+            case "be":
+                return "Belgium";
+            case "bz":
+                return "Belize";
+            case "bj":
+                return "Benin";
+            case "bt":
+                return "Bhutan";
+            case "bo":
+                return "Bolivia";
+            case "ba":
+                return "Bosnia and Herzegovina";
+            case "bw":
+                return "Botswana";
+            case "br":
+                return "Brazil";
+            case "bn":
+                return "Brunei";
+            case "bg":
+                return "Bulgaria";
+            case "bf":
+                return "Burkina Faso";
+            case "bi":
+                return "Burundi";
+            case "kh":
+                return "Cambodia";
+            case "cm":
+                return "Cameroon";
+            case "ca":
+                return "Canada";
+            case "cv":
+                return "Cape Verde";
+            case "cf":
+                return "Central African Republic";
+            case "td":
+                return "Chad";
+            case "cl":
+                return "Chile";
             case "cn":
                 return "China";
-            case "de":
-                return "Germany";
+            case "co":
+                return "Colombia";
+            case "km":
+                return "Comoros";
+            case "cd":
+                return "Democratic Republic of the Congo";
+            case "cg":
+                return "Republic of the Congo";
+            case "cr":
+                return "Costa Rica";
+            case "ci":
+                return "Ivory Coast";
+            case "hr":
+                return "Croatia";
+            case "cu":
+                return "Cuba";
+            case "cy":
+                return "Cyprus";
+            case "cz":
+                return "Czech Republic";
+            case "dk":
+                return "Denmark";
+            case "dj":
+                return "Djibouti";
+            case "dm":
+                return "Dominica";
+            case "do":
+                return "Dominican Republic";
+            case "tl":
+                return "East Timor";
+            case "ec":
+                return "Ecuador";
+            case "eg":
+                return "Egypt";
+            case "sv":
+                return "El Salvador";
+            case "gq":
+                return "Equatorial Guinea";
+            case "er":
+                return "Eritrea";
+            case "ee":
+                return "Estonia";
+            case "et":
+                return "Ethiopia";
+            case "fj":
+                return "Fiji";
+            case "fi":
+                return "Finland";
             case "fr":
                 return "France";
+            case "ga":
+                return "Gabon";
+            case "gm":
+                return "Gambia";
+            case "ge":
+                return "Georgia";
+            case "de":
+                return "Germany";
+            case "gh":
+                return "Ghana";
+            case "gr":
+                return "Greece";
+            case "gd":
+                return "Grenada";
+            case "gt":
+                return "Guatemala";
+            case "gn":
+                return "Guinea";
+            case "gw":
+                return "Guinea-Bissau";
+            case "gy":
+                return "Guyana";
+            case "ht":
+                return "Haiti";
+            case "hn":
+                return "Honduras";
+            case "hu":
+                return "Hungary";
+            case "is":
+                return "Iceland";
+            case "in":
+                return "India";
+            case "id":
+                return "Indonesia";
+            case "ir":
+                return "Iran";
+            case "iq":
+                return "Iraq";
+            case "ie":
+                return "Ireland";
+            case "il":
+                return "Israel";
+            case "it":
+                return "Italy";
+            case "jm":
+                return "Jamaica";
+            case "jp":
+                return "Japan";
+            case "jo":
+                return "Jordan";
+            case "kz":
+                return "Kazakhstan";
+            case "ke":
+                return "Kenya";
+            case "ki":
+                return "Kiribati";
+            case "kr":
+                return "South Korea";
+            case "xk":
+                return "Kosovo";
+            case "kw":
+                return "Kuwait";
+            case "kg":
+                return "Kyrgyzstan";
+            case "la":
+                return "Laos";
+            case "lv":
+                return "Latvia";
+            case "lb":
+                return "Lebanon";
+            case "ls":
+                return "Lesotho";
+            case "lr":
+                return "Liberia";
+            case "ly":
+                return "Libya";
+            case "li":
+                return "Liechtenstein";
+            case "lt":
+                return "Lithuania";
+            case "lu":
+                return "Luxembourg";
+            case "mk":
+                return "Macedonia";
+            case "mg":
+                return "Madagascar";
+            case "mw":
+                return "Malawi";
+            case "my":
+                return "Malaysia";
+            case "mv":
+                return "Maldives";
+            case "ml":
+                return "Mali";
+            case "mt":
+                return "Malta";
+            case "mh":
+                return "Marshall Islands";
+            case "mr":
+                return "Mauritania";
+            case "mu":
+                return "Mauritius";
+            case "mx":
+                return "Mexico";
+            case "fm":
+                return "Micronesia";
+            case "md":
+                return "Moldova";
+            case "mc":
+                return "Monaco";
+            case "mn":
+                return "Mongolia";
+            case "me":
+                return "Montenegro";
+            case "ma":
+                return "Morocco";
+            case "mz":
+                return "Mozambique";
+            case "mm":
+                return "Myanmar";
+            case "na":
+                return "Namibia";
+            case "nr":
+                return "Nauru";
+            case "np":
+                return "Nepal";
+            case "nl":
+                return "Netherlands";
+            case "nz":
+                return "New Zealand";
+            case "ni":
+                return "Nicaragua";
+            case "ne":
+                return "Niger";
+            case "ng":
+                return "Nigeria";
+            case "no":
+                return "Norway";
+            case "om":
+                return "Oman";
+            case "pk":
+                return "Pakistan";
+            case "pw":
+                return "Palau";
+            case "pa":
+                return "Panama";
+            case "pg":
+                return "Papua New Guinea";
+            case "py":
+                return "Paraguay";
+            case "pe":
+                return "Peru";
+            case "ph":
+                return "Philippines";
+            case "pl":
+                return "Poland";
+            case "pt":
+                return "Portugal";
+            case "qa":
+                return "Qatar";
+            case "ro":
+                return "Romania";
+            case "ru":
+                return "Russia";
+            case "rw":
+                return "Rwanda";
+            case "kn":
+                return "Saint Kitts and Nevis";
+            case "lc":
+                return "Saint Lucia";
+            case "vc":
+                return "Saint Vincent and the Grenadines";
+            case "ws":
+                return "Samoa";
+            case "sm":
+                return "San Marino";
+            case "st":
+                return "Sao Tome and Principe";
+            case "sa":
+                return "Saudi Arabia";
+            case "sn":
+                return "Senegal";
+            case "rs":
+                return "Serbia";
+            case "sc":
+                return "Seychelles";
+            case "sl":
+                return "Sierra Leone";
+            case "sg":
+                return "Singapore";
+            case "sk":
+                return "Slovakia";
+            case "si":
+                return "Slovenia";
+            case "sb":
+                return "Solomon Islands";
+            case "so":
+                return "Somalia";
+            case "za":
+                return "South Africa";
+            case "ss":
+                return "South Sudan";
+            case "es":
+                return "Spain";
+            case "lk":
+                return "Sri Lanka";
+            case "sd":
+                return "Sudan";
+            case "sr":
+                return "Suriname";
+            case "sz":
+                return "Swaziland";
+            case "se":
+                return "Sweden";
+            case "ch":
+                return "Switzerland";
+            case "sy":
+                return "Syria";
+            case "tw":
+                return "Taiwan";
+            case "tj":
+                return "Tajikistan";
+            case "tz":
+                return "Tanzania";
+            case "th":
+                return "Thailand";
+            case "tg":
+                return "Togo";
+            case "to":
+                return "Tonga";
+            case "tt":
+                return "Trinidad and Tobago";
+            case "tn":
+                return "Tunisia";
+            case "tr":
+                return "Turkey";
+            case "tm":
+                return "Turkmenistan";
+            case "tv":
+                return "Tuvalu";
+            case "ug":
+                return "Uganda";
+            case "ua":
+                return "Ukraine";
+            case "ae":
+                return "United Arab Emirates";
+            case "gb":
+                return "United Kingdom";
+            case "us":
+                return "United States";
+            case "uy":
+                return "Uruguay";
+            case "uz":
+                return "Uzbekistan";
+            case "vu":
+                return "Vanuatu";
+            case "va":
+                return "Vatican City";
+            case "ve":
+                return "Venezuela";
+            case "vn":
+                return "Vietnam";
+            case "ye":
+                return "Yemen";
+            case "zm":
+                return "Zambia";
+            case "zw":
+                return "Zimbabwe";
             default:
                 return "Unknown";
         }
     }
+
 
     private void displayNextQuestion() {
         if (currentRound < totalRounds) {
@@ -168,6 +800,7 @@ public class FlagQuizGame extends JFrame implements ActionListener {
                 }
 
                 currentRound++;
+
             } else {
                 System.err.println("Not enough questions in the list.");
             }
@@ -178,29 +811,29 @@ public class FlagQuizGame extends JFrame implements ActionListener {
             }
         }
     }
-
     @Override
     public void actionPerformed(ActionEvent e) {
-        int selectedAnswer = Integer.parseInt(e.getActionCommand());
-        FlagQuestion currentQuestion = questions.get(currentRound - 1);
+        try {
+            int selectedAnswer = Integer.parseInt(e.getActionCommand());
+            FlagQuestion currentQuestion = questions.get(currentRound - 1);
 
-        if (selectedAnswer == currentQuestion.getCorrectAnswer()) {
-            score++;
+            if (selectedAnswer == currentQuestion.getCorrectAnswer()) {
+                score++;
+            }
+
+            scoreLabel.setText("Score: " + score);
+//
+//            JOptionPane.showMessageDialog(this, "Correct answer is: " +
+//                    getCountryName(currentQuestion.getFlagPaths().get(currentQuestion.getCorrectAnswer())));
+
+            displayNextQuestion();
+        } catch (NumberFormatException ex) {
+            // Handle the case where e.getActionCommand() is not a valid integer
+            // You can choose to show a message to the user or handle it silently
+            System.err.println("Error: Action command is not a valid integer");
         }
-
-        scoreLabel.setText("Score: " + score);
-
-        // Show correct answer feedback
-        JOptionPane.showMessageDialog(this, "Correct answer is: " +
-                getCountryName(currentQuestion.getFlagPaths().get(currentQuestion.getCorrectAnswer())));
-
-        displayNextQuestion();
     }
+    // handles the selection of an answer and a catch and try is there cause if you press buttons before pressing start youll get an error
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            FlagQuizGame game = new FlagQuizGame();
-            game.setVisible(true);
-        });
-    }
+
 }
